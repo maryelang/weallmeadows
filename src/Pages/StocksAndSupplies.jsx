@@ -25,6 +25,7 @@ import supabase from '../Services/Supabase'; // Ensure this path is correct
 
 export default function StocksAndSupplies() {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [pharmaceuticalSupplies, setPharmaceuticalSupplies] = useState([]);
@@ -33,56 +34,90 @@ export default function StocksAndSupplies() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchData();
+    fetchItems();
+    fetchDrugs();
+    fetchSupplies();
   }, [selectedCategory]);
 
-  const fetchData = async () => {
-    try {
-      let tableName = '';
-      switch (selectedCategory) {
-        case 'Pharmaceutical':
-          tableName = 'pharmaceutical_supplies';
-          break;
-        case 'Surgical and Non-Surgical':
-          tableName = 'surgical_and_non_surgical_supplies';
-          break;
-        case 'Suppliers':
-          tableName = 'suppliers';
-          break;
-        default:
-          return;
-      }
+  useEffect(() => {
+    console.log('Wards state:', surgicalAndNonSurgicalSupplies);
+  }, [surgicalAndNonSurgicalSupplies]);
 
-      const { data, error } = await supabase.from(tableName).select('*');
-      if (error) throw error;
-      
-      switch (selectedCategory) {
-        case 'Pharmaceutical':
-          setPharmaceuticalSupplies(data || []);
-          break;
-        case 'Surgical and Non-Surgical':
-          setSurgicalAndNonSurgicalSupplies(data || []);
-          break;
-        case 'Suppliers':
-          setSuppliers(data || []);
-          break;
-        default:
-          break;
+  async function fetchItems() {
+    try {
+      const { data, error } = await supabase.from('surgical_and_non_surgical_supplies').select('*');
+      if (error) {
+        console.error('Error fetching items:', error.message);
+        return;
       }
+      console.log('Fetched items:', data);
+      setSurgicalAndNonSurgicalSupplies(data);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      console.error("Error details:", {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-      });
-      setError(`Failed to fetch data: ${error.message}`);
+      console.error('Error fetching items:', error.message);
     }
-  };
+  }
+
+  async function fetchDrugs() {
+    try {
+      const { data, error } = await supabase.from('pharmaceutical_supplies').select('*');
+      if (error) {
+        console.error('Error fetching pharmaceutical:', error.message);
+        return;
+      }
+      console.log('Fetched pharmaceutical:', data);
+      setPharmaceuticalSupplies(data);
+    } catch (error) {
+      console.error('Error fetching pharmaceutical:', error.message);
+    }
+  }
+
+  async function fetchSupplies() {
+    try {
+      const { data, error } = await supabase.from('suppliers').select('*');
+      if (error) {
+        console.error('Error fetching suppliers:', error.message);
+        return;
+      }
+      console.log('Fetched suppliers:', data);
+      setSuppliers(data);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error.message);
+    }
+  }
+
+
+  const filteredSurgicalAndNonSurgicalSupplies = surgicalAndNonSurgicalSupplies.filter((surgical_and_non_surgical) =>
+    (typeof surgical_and_non_surgical.itemnumber === 'string' && surgical_and_non_surgical.itemnumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof surgical_and_non_surgical.itemname === 'string' && surgical_and_non_surgical.itemname.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof surgical_and_non_surgical.itemdescription === 'string' && surgical_and_non_surgical.itemdescription.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof surgical_and_non_surgical.quantityinstock === 'string' && surgical_and_non_surgical.quantityinstock.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof surgical_and_non_surgical.reorderlevel === 'string' && surgical_and_non_surgical.reorderlevel.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof surgical_and_non_surgical.costperunit === 'string' && surgical_and_non_surgical.costperunit.includes(searchQuery))
+  );
+
+  const filteredPharmaceuticalSupplies = pharmaceuticalSupplies.filter((pharmaceutical_supplies) =>
+    (typeof pharmaceutical_supplies.drugnumber === 'string' && pharmaceutical_supplies.drugnumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.drugname === 'string' && pharmaceutical_supplies.drugname.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.drugdescription === 'string' && pharmaceutical_supplies.drugdescription.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.drugdosage === 'string' && pharmaceutical_supplies.drugdosage.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.methodofadmin === 'string' && pharmaceutical_supplies.methodofadmin.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.quantityinstock === 'string' && pharmaceutical_supplies.quantityinstock.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.reorderlevel === 'string' && pharmaceutical_supplies.reorderlevel.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof pharmaceutical_supplies.costperunit === 'string' && pharmaceutical_supplies.costperunit.includes(searchQuery))
+  );
+
+  const filteredSuppliers = suppliers.filter((supplier) =>
+    (typeof supplier.suppliernumber === 'string' && supplier.suppliernumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof supplier.suppliername === 'string' && supplier.suppliername.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof supplier.supplieraddress === 'string' && supplier.supplieraddress.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof supplier.telephonenumber === 'string' && supplier.telephonenumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof supplier.faxnumber === 'string' && supplier.faxnumber.toLowerCase().includes(searchQuery.toLowerCase())) 
+   
+  );
+
 
   const handleSearch = (event) => {
-    const searchQuery = event.target.value;
-    console.log('Searching for:', searchQuery);
+    setSearchQuery(event.target.value);
   };
 
   const handleEditClick = (content) => {
@@ -103,6 +138,9 @@ export default function StocksAndSupplies() {
     setSelectedCategory(category);
   };
 
+
+
+
   const renderTable = () => {
     switch (selectedCategory) {
       case 'Surgical and Non-Surgical':
@@ -119,14 +157,14 @@ export default function StocksAndSupplies() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {surgicalAndNonSurgicalSupplies.map((item) => (
-                <TableRow key={item.itemNumber}>
-                  <TableCell>{item.itemNumber}</TableCell>
-                  <TableCell>{item.itemName}</TableCell>
-                  <TableCell>{item.itemDescription}</TableCell>
-                  <TableCell>{item.quantityInStock}</TableCell>
-                  <TableCell>{item.reorderLevel}</TableCell>
-                  <TableCell>{item.costPerUnit}</TableCell>
+              {filteredSurgicalAndNonSurgicalSupplies.map((item) => (
+                <TableRow key={item.itemnumber}>
+                  <TableCell>{item.itemnumber}</TableCell>
+                  <TableCell>{item.itemname}</TableCell>
+                  <TableCell>{item.itemdescription}</TableCell>
+                  <TableCell>{item.quantityinstock}</TableCell>
+                  <TableCell>{item.reorderlevel}</TableCell>
+                  <TableCell>{item.costperunit}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -148,16 +186,16 @@ export default function StocksAndSupplies() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {pharmaceuticalSupplies.map((drug) => (
-                <TableRow key={drug.drugNumber}>
-                  <TableCell>{drug.drugNumber}</TableCell>
-                  <TableCell>{drug.drugName}</TableCell>
-                  <TableCell>{drug.drugDescription}</TableCell>
-                  <TableCell>{drug.drugDosage}</TableCell>
-                  <TableCell>{drug.methodOfAdmin}</TableCell>
-                  <TableCell>{drug.quantityInStock}</TableCell>
-                  <TableCell>{drug.reorderLevel}</TableCell>
-                  <TableCell>{drug.costPerUnit}</TableCell>
+              {filteredPharmaceuticalSupplies.map((drug) => (
+                <TableRow key={drug.drugnumber}>
+                  <TableCell>{drug.drugnumber}</TableCell>
+                  <TableCell>{drug.drugname}</TableCell>
+                  <TableCell>{drug.drugdescription}</TableCell>
+                  <TableCell>{drug.drugdosage}</TableCell>
+                  <TableCell>{drug.methodofadmin}</TableCell>
+                  <TableCell>{drug.quantityinstock}</TableCell>
+                  <TableCell>{drug.reorderlevel}</TableCell>
+                  <TableCell>{drug.costperunit}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -176,13 +214,13 @@ export default function StocksAndSupplies() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {suppliers.map((supplier) => (
-                <TableRow key={supplier.supplierNumber}>
-                  <TableCell>{supplier.supplierNumber}</TableCell>
-                  <TableCell>{supplier.supplierName}</TableCell>
-                  <TableCell>{supplier.supplierAddress}</TableCell>
-                  <TableCell>{supplier.telephoneNumber}</TableCell>
-                  <TableCell>{supplier.faxNumber}</TableCell>
+              {filteredSuppliers.map((supplier) => (
+                <TableRow key={supplier.suppliernumber}>
+                  <TableCell>{supplier.suppliernumber}</TableCell>
+                  <TableCell>{supplier.suppliername}</TableCell>
+                  <TableCell>{supplier.supplieraddress}</TableCell>
+                  <TableCell>{supplier.telephonenumber}</TableCell>
+                  <TableCell>{supplier.faxnumber}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -245,6 +283,8 @@ export default function StocksAndSupplies() {
           Add Stocks
         </Button>
       </Box>
+
+      
 
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
         <DialogTitle>Edit Staff Assignment</DialogTitle>

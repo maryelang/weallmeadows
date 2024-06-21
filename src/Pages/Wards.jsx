@@ -1,75 +1,282 @@
-import * as React from 'react';
-import { useState } from 'react';
-import { Container, Grid, Paper, MenuItem, Select, FormControl, InputLabel, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Divider, Box } from '@mui/material';
-import supabase from '../Services/Supabase'; // Assuming this is correctly configured
+import React, { useEffect, useState } from 'react';
+import {
+  Paper,
+  Button,
+  Container,
+  TextField,
+  InputAdornment,
+  Divider,
+  Box,
+  Grid,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  TableHead
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import supabase from '../Services/Supabase';
 
-export default function Wards() {
-  const [wardNumber, setWardNumber] = React.useState('');
-  const [availableBeds, setAvailableBeds] = React.useState(null);
+const verticalLine = {
+  border: '1px solid rgba(224, 224, 224, 1)'
+};
 
-  const handleWardChange = async (event) => {
-    const selectedWard = event.target.value;
-    setWardNumber(selectedWard);
-    fetchAvailableBeds(selectedWard);
+const Wards = () => {
+  const [wards, setWards] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [newWard, setNewWard] = useState({
+    wardname: '',
+    wardlocation: '',
+    totalnumberofbeds: '',
+    telephoneextnumber: ''
+  });
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
+
+  useEffect(() => {
+    fetchWards();
+  }, []);
+
+  useEffect(() => {
+    console.log('Wards state:', wards);
+  }, [wards]);
+
+  async function fetchWards() {
+    try {
+      const { data, error } = await supabase.from('ward').select('*');
+      if (error) {
+        console.error('Error fetching wards:', error.message);
+        return;
+      }
+      console.log('Fetched Wards:', data);
+      setWards(data);
+    } catch (error) {
+      console.error('Error fetching wards:', error.message);
+    }
+  }
+
+  const filteredWards = wards.filter((ward) =>
+    (typeof ward.wardname === 'string' && ward.wardname.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof ward.wardlocation === 'string' && ward.wardlocation.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof ward.totalnumberofbeds === 'string' && ward.totalnumberofbeds.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (typeof ward.telephoneextnumber === 'string' && ward.telephoneextnumber.includes(searchQuery))
+  );
+
+  console.log('Filtered Wards:', filteredWards);
+
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value);
   };
 
-  const fetchAvailableBeds = async (wardNumber) => {
-    try {
-      const { data, error } = await supabase.rpc('GetAvailableBedsByWardNumber', { p_ward_number: wardNumber });
-      if (error) {
-        throw error;
+  const handleEditClick = () => {
+    setIsEdit(false);
+    setNewWard({
+      wardname: '',
+      wardlocation: '',
+      totalnumberOfbeds: '',
+      telephoneextnumber: ''
+    });
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setNewWard({ ...newWard, [name]: value });
+  };
+
+  const handleSave = async () => {
+    if (isEdit) {
+      try {
+        const { error } = await supabase
+          .from('ward')
+          .update(newWard)
+          .eq('wardNumber', editId);
+
+        if (error) {
+          console.error('Error updating ward:', error.message);
+          return;
+        }
+
+        await fetchWards();
+        handleCloseDialog();
+      } catch (error) {
+        console.error('Error updating ward:', error.message);
       }
-      setAvailableBeds(data.getavailablebeds); // Assuming the stored procedure returns a single value for available beds
-    } catch (error) {
-      console.error('Error fetching available beds:', error.message);
+    } else {
+      try {
+        const { error } = await supabase.from('ward').insert([newWard]);
+
+        if (error) {
+          console.error('Error adding new ward:', error.message);
+          return;
+        }
+
+        await fetchWards();
+        handleCloseDialog();
+      } catch (error) {
+        console.error('Error adding new ward:', error.message);
+      }
     }
   };
 
+  const handleUpdateClick = (ward) => {
+    setIsEdit(true);
+    setEditId(ward.wardnumber);
+    setNewWard({
+      wardname: ward.wardname,
+      wardlocation: ward.wardlocation,
+      totalnumberofbeds: ward.totalnumberofbeds,
+      telephoneextnumber: ward.telephoneextnumber
+    });
+    setOpenDialog(true);
+  };
+
   return (
-    <Container display="flex" justifyContent="center" alignItems="center" mt={5} mb={5}>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6}>
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <FormControl variant="outlined" sx={{ minWidth: 200, mr: 2 }}>
-                <InputLabel>Ward Number</InputLabel>
-                <Select
-                  value={wardNumber}
-                  onChange={handleWardChange}
-                  label="Ward Number"
-                >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  {/* Replace hardcoded values with data from the WARD table */}
-                  {[...Array(18).keys()].map((wardNumber) => (
-                    <MenuItem key={wardNumber + 1} value={wardNumber + 1}>
-                      {wardNumber + 1}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Ward Number</TableCell>
-                    <TableCell>Available Beds</TableCell>
+    <Container maxWidth="false" sx={{ mt: 2, mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+        <Button
+          variant="contained"
+          sx={{
+            color: 'white',
+            width: '150px',
+            padding: '12px 24px',
+            backgroundColor: 'green',
+            '&:hover': {
+              backgroundColor: 'darkgreen',
+            },
+          }}
+          onClick={handleEditClick}
+        >
+          Add
+        </Button>
+      </Box>
+      <Grid item xs={12}>
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Box
+            style={{
+              marginBottom: '16px',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              position: 'relative',
+            }}
+          >
+            <Typography sx={{ m: 0, mr: 'auto', fontSize: '20px' }}>Wards</Typography>
+            <TextField
+              variant="outlined"
+              placeholder="Search"
+              sx={{ borderRadius: 1, ml: 'auto' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                sx: {
+                  ml: 2,
+                  borderRadius: 2,
+                },
+              }}
+              onChange={handleSearch}
+            />
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={verticalLine}>Ward Name</TableCell>
+                  <TableCell sx={verticalLine}>Ward Location</TableCell>
+                  <TableCell sx={verticalLine}>Total Number of Beds</TableCell>
+                  <TableCell sx={verticalLine}>Telephone Extension Number</TableCell>
+                  <TableCell sx={verticalLine}>
+                    <Typography sx={{ textAlign: 'center', fontSize: '14px' }}>Action</Typography>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredWards.map((ward) => (
+                  <TableRow key={ward.wardnumber}>
+                    <TableCell sx={verticalLine}>{ward.wardname}</TableCell>
+                    <TableCell sx={verticalLine}>{ward.wardlocation}</TableCell>
+                    <TableCell sx={verticalLine}>{ward.totalnumberofbeds}</TableCell>
+                    <TableCell sx={verticalLine}>{ward.telephoneextnumber}</TableCell>
+                    <TableCell sx={verticalLine}>
+                      <Typography sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Button onClick={() => handleUpdateClick(ward)}>
+                          Update
+                        </Button>
+                      </Typography>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{wardNumber}</TableCell>
-                    <TableCell>{availableBeds !== null ? availableBeds : 'Loading...'}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </Grid>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>{isEdit ? 'Edit Ward' : 'Add New Ward'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            name="wardName"
+            label="Ward Name"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={newWard.wardname}
+            onChange={handleInputChange}
+          />
+          <TextField
+            name="wardLocation"
+            label="Ward Location"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={newWard.wardlocation}
+            onChange={handleInputChange}
+          />
+          <TextField
+            name="totalNumberOfBeds"
+            label="Total Number of Beds"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={newWard.totalnumberofbeds}
+            onChange={handleInputChange}
+          />
+          <TextField
+            name="telephoneExtNumber"
+            label="Telephone Extension Number"
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            value={newWard.telephoneextnumber}
+            onChange={handleInputChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSave} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
-}
+};
+
+export default Wards;

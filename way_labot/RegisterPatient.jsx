@@ -7,7 +7,7 @@ import {
 
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../Services/Supabase'; // Ensure the path to your supabase service is correct
+import supabase from '../src/Services/Supabase'; // Ensure the path to your supabase service is correct
 
 const RegisterPatient = () => {
   const navigate = useNavigate();

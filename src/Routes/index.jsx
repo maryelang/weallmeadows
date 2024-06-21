@@ -4,7 +4,6 @@ import SignUp from "../../way_labot/SignUp";
 import Dashboard from "../Pages/Dashboard";
 import Main from "../Pages/Main";
 import PatientMedication from "../Pages/PatientMedication";
-import WardRequisition from "../Pages/WardRequisition";
 import StocksAndSupplies from "../Pages/StocksAndSupplies";
 import Wards from "../Pages/Wards";
 import Patient from "../PatientsPages/Patient";
@@ -19,7 +18,6 @@ import MainInPatient from "../PatientsPages/MainInPatient";
 import StaffAllocation from "../Pages/StaffAllocation";
 import LocalDoctors from '../Pages/LocalDoctors';
 import HomePage from '../Pages/HomePage';
-import RegisterPatient from '../Pages/RegisterPatient';
 
 const routes = [
     {
@@ -47,10 +45,7 @@ const routes = [
                 element: <Main />,
                 
             },
-            {
-                path:"registerpatient",
-                element:<RegisterPatient/>
-            },
+            
             {
                 path: "patientMed",
                 element: <PatientMedication />
@@ -61,10 +56,7 @@ const routes = [
             },
            
            
-            {
-                path: "wardReq",
-                element: <WardRequisition />
-            },
+        
             {
                 path: "stocksAndSupplies",
                 element: <StocksAndSupplies />

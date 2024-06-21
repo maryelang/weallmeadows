@@ -51,7 +51,7 @@ const WaitingLists = () => {
     <TableContainer>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography component="h6" variant="h5" color="inherit" sx={{ flexGrow: 1 }}>
-          OutPatient Lists 
+          Waiting Lists 
         </Typography>
         <TextField
           variant="outlined"

@@ -48,7 +48,7 @@ const OutPatient = () => {
     <TableContainer>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography component="h6" variant="h5" color="inherit" sx={{ flexGrow: 1 }}>
-          OutPatient Lists 
+          Out Patient Lists 
         </Typography>
         <TextField
           variant="outlined"

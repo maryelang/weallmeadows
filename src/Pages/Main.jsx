@@ -64,9 +64,20 @@ const Main = () => {
     };
 
     const filteredStaff = staff.filter((staffRecs) =>
+        staffRecs.staffnumber.toString().includes(searchQuery) ||
         staffRecs.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
         staffRecs.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        staffRecs.staffnumber.toString().includes(searchQuery)
+        staffRecs.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.sex.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.dateofbirth.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.telnumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.currentsalary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.salaryscale.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.paidweeklyormonthly.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staffRecs.permanentortemporary.toLowerCase().includes(searchQuery.toLowerCase()) 
+
+
     );
 
     const handleAddStaffClick = () => {
@@ -119,15 +130,15 @@ const Main = () => {
                     .from('staff')
                     .insert([formData]);
             }
-
-            console.log('Staff saved successfully:', data);
+    
+            console.log('Staff saved successfully:', result);  // Change 'data' to 'result'
             fetchStaffs(); // Refresh staff list
             handleCloseDialog();
         } catch (error) {
             console.error('Error saving staff:', error.message);
         }
     };
-
+    
     const handleDeleteConfirm = async () => {
         try {
             const { data, error } = await supabase
@@ -161,27 +172,7 @@ const Main = () => {
                 <Grid container spacing={5} justifyContent="flex-start" alignItems="center">
                     <Grid item xs={12}>
                         <Grid container spacing={3} justifyContent="center" alignItems="center">
-                            <Grid item xs={3}>
-                                <Link to="/dashboard/registerPatient" style={{ textDecoration: 'none' }}>
-                                    <Paper
-                                        sx={{
-                                            p: 3,
-                                            backgroundColor: '#03a9f4',
-                                            '&:hover': { backgroundColor: '#0056b3' },
-                                            borderRadius: '5px',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                        }}
-                                        variant="contained"
-                                    >
-                                        <LocalHospitalIcon style={{ fontSize: 40, color: 'white', marginRight: 10 }} />
-                                        <Typography variant="h6" color="white">
-                                            Register Patient
-                                        </Typography>
-                                    </Paper>
-                                </Link>
-                            </Grid>
+                           
 
                             <Grid item xs={3}>
                                 <Link to="/dashboard/Patient" style={{ textDecoration: 'none' }}>
@@ -347,7 +338,7 @@ const Main = () => {
                     <DialogTitle>{isEditMode ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
                     <DialogContent>
                         <TextField
-                            autoFocus
+                            
                             margin="dense"
                             name="staffnumber"
                             label="Staff Number"
@@ -355,7 +346,7 @@ const Main = () => {
                             fullWidth
                             value={formData.staffnumber}
                             onChange={handleChange}
-                            disabled={isEditMode}
+                            disabled
                         />
                         <TextField
                             autoFocus
@@ -433,7 +424,6 @@ const Main = () => {
                             margin="dense"
                             name="currentsalary"
                             label="Current Salary"
-                            type="number"
                             fullWidth
                             value={formData.currentsalary}
                             onChange={handleChange}

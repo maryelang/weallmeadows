@@ -45,18 +45,27 @@ const LocalDoctors = () => {
   };
 
   const handleSave = async () => {
-    console.log('Saving new doctor...', newDoctor);
     try {
-      const { data, error } = await supabase.from('local_doctor').insert([newDoctor]);
+      const dataToSave = {
+        cn_fullname: newDoctor.cn_fullname,
+        cn_address: newDoctor.cn_address,
+        cn_telephonenumber: newDoctor.cn_telephonenumber,
+      };
+
+      const { data, error } = await supabase
+        .from('local_doctor')
+        .insert(dataToSave)
+        .select(); // Ensure the inserted data is returned
+
       if (error) {
-        console.error('Error saving new doctor', error.message);
+        console.error("Error inserting data:", error.message);
         return;
       }
       setDoctors([...doctors, data[0]]);
       setNewDoctor({ cn_fullname: '', cn_address: '', cn_telephonenumber: '' });
       handleCloseDialog();
     } catch (error) {
-      console.error('Error saving new doctor', error.message);
+      console.error('Error saving doctor:', error.message);
     }
   };
 
@@ -79,6 +88,7 @@ const LocalDoctors = () => {
   }
 
   const filteredDoctors = doctors.filter((doctor) =>
+    doctor.clinicnumber.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
     doctor.cn_fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
     doctor.cn_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
     doctor.cn_telephonenumber.toString().includes(searchQuery)
@@ -86,6 +96,23 @@ const LocalDoctors = () => {
 
   return (
     <Container maxWidth="false" sx={{ mt: 2, mb: 2 }}>
+      <Grid item xs={12} align="center">
+        <Button
+          variant="contained"
+          sx={{
+            color: 'white',
+            width: '150px',
+            padding: '12px 24px',
+            backgroundColor: 'green',
+            '&:hover': {
+              backgroundColor: 'darkgreen',
+            },
+          }}
+          onClick={handleAddClick}
+        >
+          Add
+        </Button>
+      </Grid>
       <Grid item xs={12}>
         <Paper elevation={3} sx={{ p: 3 }}>
           <Box
@@ -116,60 +143,44 @@ const LocalDoctors = () => {
               onChange={handleSearch}
             />
           </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Clinic number</TableCell>
+                <TableCell>Full name</TableCell>
+                <TableCell>Address</TableCell>
+                <TableCell>Telephone number</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredDoctors.map((doctor) => {
+                return (
+                  <TableRow key={doctor.clinicnumber}>
+                    <TableCell>{doctor.clinicnumber}</TableCell>
+                    <TableCell>{doctor.cn_fullname || ''}</TableCell>
+                    <TableCell>{doctor.cn_address || ''}</TableCell>
+                    <TableCell>{doctor.cn_telephonenumber || ''}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </Paper>
       </Grid>
-
-      <Divider sx={{ mb: 2 }} />
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Clinic number</TableCell>
-              <TableCell>Full name</TableCell>
-              <TableCell>Address</TableCell>
-              <TableCell>Telephone number</TableCell>
-              <TableCell>
-                <Typography sx={{ textAlign: 'center', fontSize: '14px' }}>Action</Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredDoctors.map((doctor) => {
-              console.log('Doctor:', doctor);
-              return (
-                <TableRow key={doctor.cn_clinicnumber}>
-                  <TableCell>{doctor.cn_clinicnumber}</TableCell>
-                  <TableCell>{doctor.cn_fullname || ''}</TableCell>
-                  <TableCell>{doctor.cn_address || ''}</TableCell>
-                  <TableCell>{doctor.cn_telephonenumber || ''}</TableCell>
-                  <TableCell align="center">
-                    <Button
-                      variant="contained"
-                      sx={{
-                        color: 'white',
-                        width: '150px',
-                        padding: '12px 24px',
-                        backgroundColor: 'green',
-                        '&:hover': {
-                          backgroundColor: 'darkgreen',
-                        },
-                      }}
-                      onClick={handleAddClick}
-                    >
-                      Add
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
 
       {/* Dialog for Add functionality */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
         <DialogTitle>Add Local Doctor</DialogTitle>
         <DialogContent>
+          <TextField
+            fullWidth
+            variant="outlined"
+            label="Clinic number"
+            sx={{ mb: 2 }}
+            value={newDoctor.clinicnumber}
+            disabled
+          />
           <TextField
             fullWidth
             variant="outlined"
@@ -204,6 +215,6 @@ const LocalDoctors = () => {
       </Dialog>
     </Container>
   );
-}
+};
 
 export default LocalDoctors;

@@ -6,7 +6,6 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import MedicationIcon from '@mui/icons-material/Medication';
 import PeopleIcon from '@mui/icons-material/People';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import FeedIcon from '@mui/icons-material/Feed';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogoutOutlined } from '@mui/icons-material';
@@ -51,14 +50,6 @@ export default function MainListItems() {
         </ListItemButton>
       </Link>
 
-      <Link to="/dashboard/wardReq" style={{ textDecoration: 'none' }}>
-        <ListItemButton>
-          <ListItemIcon>
-            <FeedIcon />
-          </ListItemIcon>
-          <ListItemText primary="Ward Requisitions" />
-        </ListItemButton>
-      </Link>
 
       <Link to="/dashboard/localDoctors" style={{ textDecoration: 'none' }}>
         <ListItemButton>

@@ -116,9 +116,7 @@ const PatientLists = () => {
               <TableCell sx={verticalLine}>Sex</TableCell>
               <TableCell sx={verticalLine}>Marital Status</TableCell>
               <TableCell sx={verticalLine}>Date registered</TableCell>
-              <TableCell sx={verticalLine}>
-                <Typography sx={{ textAlign: 'center', fontSize: '14px' }}>Action</Typography>
-              </TableCell>
+            
             </TableRow>
           </TableHead>
           <TableBody>
@@ -135,71 +133,13 @@ const PatientLists = () => {
                 <TableCell sx={verticalLine}>{patient.sex}</TableCell>
                 <TableCell sx={verticalLine}>{patient.maritalstatus}</TableCell>
                 <TableCell sx={verticalLine}>{patient.dateregistered}</TableCell>
-                <TableCell sx={verticalLine}>
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Button
-                      sx={{
-                        width: '150px',
-                        backgroundColor: '#0288d1',
-                        '&:hover': { backgroundColor: '#193b4d' },
-                        borderRadius: '5px',
-                        color: 'white',
-                        mb: 1,
-                        fontSize: '0.70rem',
-                      }}
-                    >
-                      Add to outpatient
-                    </Button>
-                    <Divider orientation="vertical" flexItem sx={{ mx: 2 }} /> {/* Vertical Divider */}
-                    <Button
-                      sx={{
-                        width: '150px',
-                        backgroundColor: '#0288d1',
-                        '&:hover': { backgroundColor: '#193b4d' },
-                        borderRadius: '5px',
-                        color: 'white',
-                        ml: 1,
-                        mb: 1,
-                        fontSize: '0.70rem',
-                      }}
-                      onClick={handleOpenDialog}
-                    >
-                      Add to waiting list
-                    </Button>
-                  </Box>
-                </TableCell>
-              </TableRow>
+                </TableRow>
             ))}
             {/* Additional rows can be added here */}
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Dialog for selecting ward number */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Select Ward Number</DialogTitle>
-        <DialogContent>
-          <Select
-            value={selectedWard}
-            onChange={(e) => setSelectedWard(e.target.value)}
-            fullWidth
-            variant="outlined"
-
-            
-            sx={{ mt: 2, mb: 2 }}
-          >
-            <MenuItem value={1}>Neurosurgical ward</MenuItem>
-            <MenuItem value={2}>Ward 2</MenuItem>
-            <MenuItem value={3}>Ward 3</MenuItem>
-          </Select>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" sx={{ backgroundColor: 'green', color: 'white' }}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      
     </TableContainer>
   );
 };
